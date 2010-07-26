@@ -1,0 +1,10 @@
+= Rails Flickr API Demo
+
+== Requires ...
+
+* flickr gem
+* flickr api key in flickr.yml
+
+== FYI
+
+Sorry, but no tests.

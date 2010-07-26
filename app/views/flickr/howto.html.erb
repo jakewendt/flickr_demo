@@ -1,0 +1,150 @@
+<div id="howto">
+
+<h4> How I FINALLY got the Flickr / AJAX / Ruby on Rails up and running on my Powerbook AND my GoDaddy website!</h4>
+
+<p>
+I watched the video tutorial 
+<a href="http://media.rubyonrails.org/video/flickr-rails-ajax.mov">http://media.rubyonrails.org/video/flickr-rails-ajax.mov</a>
+ and typed it all in, but it didn't work.  
+Even after correcting a bunch of typos, it still didn't work.  
+I searched online for actual text files, but only found more links to the video and lots of others looking for the code.  
+It seems to me that the whole problem was that the flickr.rb doesn't really use the api_key that the caller passes it.  
+It tries to use it's own which is the problem.  
+Basically, you've got to hardcode your flickr api_key into the flickr.rb api.
+Below is the intel that I've compiled on the subject.
+Don't forget that this is NOT my work, simply the missing documentation of it.
+</p>
+
+<br />
+
+<ol>
+	<li>Enable Rails on your GoDaddy account using the Content - CGI Admin panel.</li>
+	<li>Create a Rails App Directory using the Content - CGI Admin panel. (I used /rails/flickr )</li>
+	<li>GoDaddy uses rails 1.1.6 so you need to as well. (I'm assuming that you've got ruby already installed)
+		<ul><li>sudo gem install rails --version=1.1.6</li></ul></li>
+	<li>You'll need the flickr.rb file and the easiest way to get it is ...
+		<ul><li>sudo gem install -r flickr</li>
+			<li>Mine ended up here ... /usr/local/lib/ruby/gems/1.8/gems/flickr-1.0.0/flickr.rb</li></ul></li>
+	<li>Find a nice place to create the app and then ...
+		<ul><li>rails flickr</li>
+			<li>cd flickr</li></ul></li>
+	<li>Begin editing the actual files ...</li>
+	<li>Cut-n-paste the following into app/views/layouts/application.rhtml
+		<pre>
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt;
+&lt;html&gt;
+	&lt;head&gt;
+		&lt;meta http-equiv="Content-type" content="text/html; charset=utf-8" /&gt;
+		&lt;title&gt;Flickr&lt;/title&gt;
+		&lt;&#37;= javascript_include_tag :defaults &#37;&gt;
+		&lt;&#37;= stylesheet_link_tag 'flickr' &#37;&gt;
+	&lt;/head&gt;
+
+	&lt;body&gt;
+		&lt;&#37;= yield &#37;&gt;
+	&lt;/body&gt;
+
+&lt;/html&gt;
+		</pre></li>
+	<li>Cut-n-paste the following into public/stylesheets/flickr.css
+		<pre>
+body {
+	background-color: #888;
+	font-family: Lucida Grande;
+	font-size: 11px;
+	margin: 25px;
+}
+
+form {
+	margin: 0;
+	margin-bottom: 10px;
+	background-color: #eee;
+	border: 5px solid #333;
+	padding: 25px;
+}
+
+fieldset {
+	border: none;
+}
+
+#spinner {
+	float: right;
+	margin: 10px;
+}
+
+#photos img {
+	border: 1px solid #000;
+	width: 75px;
+	height: 75px;
+	margin: 5px;
+}
+		</pre></li>
+		
+	<li>Cut-n-paste the following into app/views/flickr/index.rhtml
+		<pre>
+&lt;&#37;= form_remote_tag :url =&gt; {:action =&gt; 'search'}, :update =&gt; 'photos', 
+	:complete =&gt; visual_effect(:blind_down, 'photos'),
+	:before   =&gt; &#37;(Element.show('spinner')),
+	:success  =&gt; &#37;(Element.hide('spinner')) &#37;&gt;
+
+	&lt;&#37;= image_tag 'spinner.gif', :id =&gt; 'spinner', :style =&gt; 'display: none' &#37;&gt;
+
+	&lt;fieldset&gt;
+		&lt;label for="tags"&gt;Tags:&lt;/label&gt;
+		&lt;&#37;= text_field_tag 'tags' &#37;&gt;
+		&lt;&#37;= submit_tag 'Find' &#37;&gt;
+	&lt;/fieldset&gt;
+
+	&lt;div id="photos" style="display: block" &gt; &lt;/div&gt;
+
+&lt;&#37;= end_form_tag &#37;&gt;
+		</pre></li>
+		
+	<li>Cut-n-paste the following intoapp/controllers/flickr_controller.rb
+		<pre>
+class FlickrController &lt; ApplicationController
+
+	def search 
+		#	do NOT pass anything to Flickr.new
+		#	have to hard code the api_key in flickr.rb
+		flickr = Flickr.new	
+		render :partial =&gt; "photo", :collection =&gt; 
+			flickr.photos(:tags =&gt; params[:tags], :per_page =&gt; '24')
+	end
+
+end
+		</pre></li>
+		
+	<li>Cut-n-paste the following intoapp/views/flickr/_photo.rhtml
+		<pre>
+
+&lt;img class="photo" src="&lt;&#37;= photo.sizes[0]['source'] &#37;&gt;" /&gt;
+
+		</pre></li>
+		
+	<li>Add the line "require 'flickr'" to the end of config/environment.rb</li>
+	<li>Find a "spinner.gif" someone online and put it in public/images/ although mine doesn't seem to work.</li>
+	<li>Acquire your own Flickr API Key</li>
+	<li>Copy the flickr.rb file into your own app.  This sounds strange but is the only way I could get it to work.
+		<ul>
+			<li>cp /usr/local/lib/ruby/gems/1.8/gems/flickr-1.0.0/flickr.rb app/models/</li>
+			<li>Edit app/models/flickr.rb and put YOUR key into the initialize routine</li></ul></li>
+<br />
+	<li>Post the entire contents into your GoDaddy account. ( /rails/flickr/ )</li>
+	<li>Don't forget the chmod 755 to the cgi scripts in /public/</li>
+	<li>http://jakewendt.com/rails/flickr/public/ (don't forget the trailing slash)</li>
+</ol>
+
+<hr />
+
+<h4>Optional ...</h4>
+
+<p>Enable Sub Domain access by ...</p>
+<ul>
+	<li>Create a Sub Domain with Settings - Domain Management. (I linked flickr to /rails/flickr/public )</li>
+	<li>Add the line "RewriteBase /" to public/.htaccess </li>
+	<li>This will allow http://flickr.jakewendt.com but breaks http://jakewendt.com/rails/flickr/public/</li>
+</ul>
+
+</div>

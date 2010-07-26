@@ -8,3 +8,6 @@
 == FYI
 
 Sorry, but no tests.
+
+I wrote this a few years ago and don't maintain it.
+

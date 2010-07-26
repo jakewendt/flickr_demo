@@ -2,8 +2,8 @@
 
 == Requires ...
 
-* flickr gem
-* flickr api key in flickr.yml
+* flickr gem (included)
+* flickr api key in flickr.yml (NOT included)
 
 == FYI
 

@@ -7,7 +7,7 @@
 require File.join(File.dirname(__FILE__), 'boot')
 
 Rails::Initializer.run do |config|
-	config.gem "flickr"
+	config.gem "flickr"	#	included
 	config.frameworks -= [ :active_record, :active_resource, :action_mailer ]
 	config.time_zone = 'UTC'
 end
